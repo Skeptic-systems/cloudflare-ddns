@@ -1,0 +1,36 @@
+services:
+  api:
+    profiles: ["api"]
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    environment:
+      NODE_ENV: production
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required}
+      TARGET_HOSTNAMES: ${TARGET_HOSTNAMES:-}
+      TARGET_ZONES: ${TARGET_ZONES:-}
+      BLACKLIST_HOSTNAMES: ${BLACKLIST_HOSTNAMES:-}
+      INCLUDE_IPV4: ${INCLUDE_IPV4:-true}
+      INCLUDE_IPV6: ${INCLUDE_IPV6:-false}
+      CLOUDFLARE_PROXIED: ${CLOUDFLARE_PROXIED:-true}
+      UPDATE_INTERVAL_SECONDS: ${UPDATE_INTERVAL_SECONDS:-300}
+    restart: unless-stopped
+
+  full-stack:
+    profiles: ["full"]
+    build:
+      context: .
+      dockerfile: dockerfile
+    environment:
+      NODE_ENV: production
+      CLOUDFLARE_API_TOKEN: ${CLOUDFLARE_API_TOKEN:?CLOUDFLARE_API_TOKEN is required}
+      TARGET_HOSTNAMES: ${TARGET_HOSTNAMES:-}
+      TARGET_ZONES: ${TARGET_ZONES:-}
+      BLACKLIST_HOSTNAMES: ${BLACKLIST_HOSTNAMES:-}
+      INCLUDE_IPV4: ${INCLUDE_IPV4:-true}
+      INCLUDE_IPV6: ${INCLUDE_IPV6:-false}
+      CLOUDFLARE_PROXIED: ${CLOUDFLARE_PROXIED:-true}
+      UPDATE_INTERVAL_SECONDS: ${UPDATE_INTERVAL_SECONDS:-300}
+    ports:
+      - "3000:3000"
+

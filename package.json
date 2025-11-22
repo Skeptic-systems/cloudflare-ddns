@@ -1,0 +1,16 @@
+{
+  "name": "cloudflare-ddns",
+  "private": true,
+  "scripts": {
+    "api:dev": "pnpm --dir apps/api dev",
+    "api:build": "pnpm --dir apps/api build",
+    "api:start": "pnpm --dir apps/api start",
+    "www:dev": "pnpm --dir apps/www dev",
+    "www:build": "pnpm --dir apps/www build",
+    "www:start": "pnpm --dir apps/www start",
+    "dev": "pnpm www:dev",
+    "build": "pnpm api:build && pnpm www:build",
+    "start": "pnpm www:start"
+  }
+}
+
