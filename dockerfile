@@ -44,5 +44,5 @@ COPY --from=builder /app/apps/api/dist ./apps/api/dist
 
 EXPOSE 3000
 
-CMD ["node", "server.js"]
+CMD ["node", "apps/www/server.js"]
 
