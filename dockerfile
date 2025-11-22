@@ -11,6 +11,8 @@ COPY apps/www/package.json apps/www/
 RUN pnpm install --frozen-lockfile
 
 FROM deps AS builder
+ARG CLOUDFLARE_API_TOKEN=placeholder-token
+ENV CLOUDFLARE_API_TOKEN=${CLOUDFLARE_API_TOKEN}
 COPY . .
 RUN pnpm build
 RUN pnpm prune --prod
