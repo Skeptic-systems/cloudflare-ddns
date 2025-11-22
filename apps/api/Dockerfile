@@ -10,6 +10,7 @@ RUN pnpm install --filter @cloudflare-ddns/api... --frozen-lockfile
 
 FROM deps AS builder
 COPY . .
+ENV CI=true
 RUN pnpm api:build
 RUN pnpm install --filter @cloudflare-ddns/api... --prod --frozen-lockfile
 
