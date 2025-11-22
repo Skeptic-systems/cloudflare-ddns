@@ -1,7 +1,7 @@
 /* eslint-disable react-hooks/exhaustive-deps */
 "use client";
 
-import { useCallback, useEffect, useMemo, useState, useTransition } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type {
   DashboardStatus,
   HostStatusSummary,
@@ -68,11 +68,44 @@ const kindClass = (kind: RecordStatusSummary["kind"]): string => {
   }
 };
 
+const isStringArray = (value: unknown): value is readonly string[] => {
+  if (!Array.isArray(value)) {
+    return false;
+  }
+  return value.every((entry) => typeof entry === "string");
+};
+
+const isDashboardStatus = (value: unknown): value is DashboardStatus => {
+  if (typeof value !== "object" || value === null) {
+    return false;
+  }
+  const record = value as Record<string, unknown>;
+  if (typeof record.generatedAt !== "string") {
+    return false;
+  }
+  if (typeof record.running !== "boolean") {
+    return false;
+  }
+  if (typeof record.intervalSeconds !== "number") {
+    return false;
+  }
+  if (!isStringArray(record.hostnameTargets)) {
+    return false;
+  }
+  if (!isStringArray(record.zoneTargets)) {
+    return false;
+  }
+  if (!Array.isArray(record.hosts)) {
+    return false;
+  }
+  return true;
+};
+
 export default function Dashboard({ initialData }: DashboardProps) {
   const [data, setData] = useState<DashboardStatus>(initialData);
   const [isRefreshing, setIsRefreshing] = useState(false);
-  const [isPending, startTransition] = useTransition();
-  const busy = isPending || data.running;
+  const [isUpdating, setIsUpdating] = useState(false);
+  const busy = isUpdating || data.running;
 
   const fetchStatus = useCallback(async () => {
     try {
@@ -83,8 +116,12 @@ export default function Dashboard({ initialData }: DashboardProps) {
       if (!response.ok) {
         throw new Error(`Request failed with ${response.status}`);
       }
-      const next = (await response.json()) as DashboardStatus;
-      setData(next);
+      const payload = await response.json();
+      if (!isDashboardStatus(payload)) {
+        console.error("Unexpected dashboard status payload", payload);
+        return;
+      }
+      setData(payload);
     } catch (error) {
       console.error("Failed to refresh dashboard status", error);
     } finally {
@@ -99,14 +136,14 @@ export default function Dashboard({ initialData }: DashboardProps) {
     return () => window.clearInterval(interval);
   }, [fetchStatus]);
 
-  const handleTriggerUpdate = useCallback(() => {
-    startTransition(async () => {
-      try {
-        await triggerUpdate();
-      } finally {
-        await fetchStatus();
-      }
-    });
+  const handleTriggerUpdate = useCallback(async () => {
+    setIsUpdating(true);
+    try {
+      await triggerUpdate();
+      await fetchStatus();
+    } finally {
+      setIsUpdating(false);
+    }
   }, [fetchStatus]);
 
   const statusChip = useMemo(() => {
